@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/tls"
 	"net"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -69,4 +71,70 @@ type Options struct {
 
 	// Enables read only queries on slave/follower nodes.
 	readOnly bool
+}
+
+func (opt *Options) Init() {
+	if opt.Addr == "" {
+		opt.Addr = "localhost:6379"
+	}
+	if opt.Network == "" {
+		if strings.HasPrefix(opt.Addr, "/") {
+			opt.Network = "unix"
+		} else {
+			opt.Network = "tcp"
+		}
+	}
+	if opt.DialTimeout == 0 {
+		opt.DialTimeout = 5 * time.Second
+	}
+	if opt.Dialer == nil {
+		// opt.Dialer = NewDialer(opt)
+	}
+	if opt.PoolSize == 0 {
+		opt.PoolSize = 10 * runtime.GOMAXPROCS(0)
+	}
+	switch opt.ReadTimeout {
+	case -2:
+		opt.ReadTimeout = -1
+	case -1:
+		opt.ReadTimeout = 0
+	case 0:
+		opt.ReadTimeout = 3 * time.Second
+	}
+	switch opt.WriteTimeout {
+	case -2:
+		opt.WriteTimeout = -1
+	case -1:
+		opt.WriteTimeout = 0
+	case 0:
+		opt.WriteTimeout = opt.ReadTimeout
+	}
+	if opt.PoolTimeout == 0 {
+		if opt.ReadTimeout > 0 {
+			opt.PoolTimeout = opt.ReadTimeout + time.Second
+		} else {
+			opt.PoolTimeout = 30 * time.Second
+		}
+	}
+	if opt.ConnMaxIdleTime == 0 {
+		opt.ConnMaxIdleTime = 30 * time.Minute
+	}
+
+	if opt.MaxRetries == -1 {
+		opt.MaxRetries = 0
+	} else if opt.MaxRetries == 0 {
+		opt.MaxRetries = 3
+	}
+	switch opt.MinRetryBackoff {
+	case -1:
+		opt.MinRetryBackoff = 0
+	case 0:
+		opt.MinRetryBackoff = 8 * time.Millisecond
+	}
+	switch opt.MaxRetryBackoff {
+	case -1:
+		opt.MaxRetryBackoff = 0
+	case 0:
+		opt.MaxRetryBackoff = 512 * time.Millisecond
+	}
 }

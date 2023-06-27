@@ -1,19 +1,23 @@
 package lufeijun
 
+import (
+	"github.com/lufeijun/go-tool-redis/illuminate/redis"
+)
+
 // 获取一个客户端
-// func NewClient(opt *Options) *Client {
-// 	opt.init()
+func NewClient(opt *redis.Options) *redis.Client {
+	opt.Init()
 
-// 	// c := Client{
-// 	// 	baseClient: &baseClient{
-// 	// 		opt: opt,
-// 	// 	},
-// 	// }
-// 	// c.init()
-// 	// c.connPool = newConnPool(opt, c.dialHook)
+	c := redis.Client{
+		// baseClient: &baseClient{
+		// 	opt: opt,
+		// },
+	}
+	// c.init()
+	// c.connPool = newConnPool(opt, c.dialHook)
 
-// 	return &c
-// }
+	return &c
+}
 
 // RedisClientPool = redis.NewClient(&redis.Options{
 // 	Addr:         "192.168.0.87:6379",
