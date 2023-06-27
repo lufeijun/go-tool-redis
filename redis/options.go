@@ -73,10 +73,14 @@ type Options struct {
 	readOnly bool
 }
 
-func (opt *Options) Init() {
+// 初始化配置
+func (opt *Options) init() {
+
 	if opt.Addr == "" {
 		opt.Addr = "localhost:6379"
 	}
+
+	// 网络类型。本地 Unix 或者 tcp
 	if opt.Network == "" {
 		if strings.HasPrefix(opt.Addr, "/") {
 			opt.Network = "unix"
@@ -88,11 +92,12 @@ func (opt *Options) Init() {
 		opt.DialTimeout = 5 * time.Second
 	}
 	if opt.Dialer == nil {
-		// opt.Dialer = NewDialer(opt)
+		opt.Dialer = NewDialer(opt)
 	}
 	if opt.PoolSize == 0 {
 		opt.PoolSize = 10 * runtime.GOMAXPROCS(0)
 	}
+
 	switch opt.ReadTimeout {
 	case -2:
 		opt.ReadTimeout = -1
@@ -125,12 +130,14 @@ func (opt *Options) Init() {
 	} else if opt.MaxRetries == 0 {
 		opt.MaxRetries = 3
 	}
+
 	switch opt.MinRetryBackoff {
 	case -1:
 		opt.MinRetryBackoff = 0
 	case 0:
 		opt.MinRetryBackoff = 8 * time.Millisecond
 	}
+
 	switch opt.MaxRetryBackoff {
 	case -1:
 		opt.MaxRetryBackoff = 0

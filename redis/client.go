@@ -1,7 +1,7 @@
 package redis
 
 type Client struct {
-	// *baseClient
+	*baseClient
 	// cmdable
 	// hooksMixin
 }
