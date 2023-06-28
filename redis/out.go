@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// redis client
+// redis client 第一步
 func NewClient(opt *Options) *Client {
 	opt.init()
 
@@ -16,7 +16,8 @@ func NewClient(opt *Options) *Client {
 			opt: opt,
 		},
 	}
-	// c.init()
+	// 客户端初始化逻辑
+	c.init()
 	// c.connPool = newConnPool(opt, c.dialHook)
 
 	return &c

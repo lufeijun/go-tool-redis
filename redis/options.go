@@ -145,3 +145,8 @@ func (opt *Options) init() {
 		opt.MaxRetryBackoff = 512 * time.Millisecond
 	}
 }
+
+func (opt *Options) clone() *Options {
+	clone := *opt
+	return &clone
+}

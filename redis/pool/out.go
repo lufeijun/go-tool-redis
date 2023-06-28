@@ -19,3 +19,10 @@ func NewConn(netConn net.Conn) *Conn {
 	cn.SetUsedAt(time.Now())
 	return cn
 }
+
+func NewSingleConnPool(pool Pooler, cn *Conn) *SingleConnPool {
+	return &SingleConnPool{
+		pool: pool,
+		cn:   cn,
+	}
+}
