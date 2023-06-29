@@ -1,5 +1,7 @@
 package redis
 
+import "context"
+
 // 可执行命令函数
 // type cmdable func(ctx context.Context, cmd command.Cmder) error
 // type statefulCmdable func(ctx context.Context, cmd command.Cmder) error
@@ -19,4 +21,16 @@ func (c *Client) init() {
 	// 	pipeline:   c.baseClient.processPipeline,
 	// 	txPipeline: c.baseClient.processTxPipeline,
 	// })
+}
+
+func (c *Client) Watch(ctx context.Context, fn func(*Tx) error, keys ...string) error {
+	// tx := c.newTx()
+	// defer tx.Close(ctx)
+	// if len(keys) > 0 {
+	// 	if err := tx.Watch(ctx, keys...).Err(); err != nil {
+	// 		return err
+	// 	}
+	// }
+	// return fn(tx)
+	return nil
 }

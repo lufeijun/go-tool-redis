@@ -12,6 +12,11 @@ import (
 type Options struct {
 
 	// ------------基础配置部分--------------
+
+	// Protocol 2 or 3. Use the version to negotiate RESP version with redis-server.
+	// Default is 3.
+	Protocol int // redis C/S 交互的协议
+
 	// 网络类型，tcp 、unix
 	Network string
 	// 路由地址。待端口号的
@@ -54,10 +59,6 @@ type Options struct {
 	MaxIdleConns int
 
 	// ------------ 待定部分 --------------
-
-	// Protocol 2 or 3. Use the version to negotiate RESP version with redis-server.
-	// Default is 3.
-	Protocol int
 
 	// CredentialsProvider allows the username and password to be updated
 	// before reconnecting. It should return the current username and password.

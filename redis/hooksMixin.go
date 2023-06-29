@@ -3,8 +3,6 @@ package redis
 import (
 	"context"
 	"net"
-
-	"github.com/lufeijun/go-tool-redis/redis/command"
 )
 
 // 给用户自定义的钩子接口
@@ -16,8 +14,8 @@ type Hook interface {
 
 type (
 	DialHook            func(ctx context.Context, network, addr string) (net.Conn, error)
-	ProcessHook         func(ctx context.Context, cmd command.Cmder) error
-	ProcessPipelineHook func(ctx context.Context, cmds []command.Cmder) error
+	ProcessHook         func(ctx context.Context, cmd Cmder) error
+	ProcessPipelineHook func(ctx context.Context, cmds []Cmder) error
 )
 
 // hooks 部分
@@ -33,13 +31,13 @@ func (h *hooks) setDefaults() {
 		h.dial = func(ctx context.Context, network, addr string) (net.Conn, error) { return nil, nil }
 	}
 	if h.process == nil {
-		h.process = func(ctx context.Context, cmd command.Cmder) error { return nil }
+		h.process = func(ctx context.Context, cmd Cmder) error { return nil }
 	}
 	if h.pipeline == nil {
-		h.pipeline = func(ctx context.Context, cmds []command.Cmder) error { return nil }
+		h.pipeline = func(ctx context.Context, cmds []Cmder) error { return nil }
 	}
 	if h.txPipeline == nil {
-		h.txPipeline = func(ctx context.Context, cmds []command.Cmder) error { return nil }
+		h.txPipeline = func(ctx context.Context, cmds []Cmder) error { return nil }
 	}
 }
 
@@ -99,7 +97,7 @@ func (hs *hooksMixin) clone() hooksMixin {
 }
 
 // redis 命令钩子函数
-func (hs *hooksMixin) withProcessHook(ctx context.Context, cmd command.Cmder, hook ProcessHook) error {
+func (hs *hooksMixin) withProcessHook(ctx context.Context, cmd Cmder, hook ProcessHook) error {
 
 	// 获取了 slice 最后一个满足条件的元素
 	for i := len(hs.slice) - 1; i >= 0; i-- {
@@ -111,7 +109,7 @@ func (hs *hooksMixin) withProcessHook(ctx context.Context, cmd command.Cmder, ho
 }
 
 // redis 管道命令钩子函数
-func (hs *hooksMixin) withProcessPipelineHook(ctx context.Context, cmds []command.Cmder, hook ProcessPipelineHook) error {
+func (hs *hooksMixin) withProcessPipelineHook(ctx context.Context, cmds []Cmder, hook ProcessPipelineHook) error {
 	for i := len(hs.slice) - 1; i >= 0; i-- {
 		if wrapped := hs.slice[i].ProcessPipelineHook(hook); wrapped != nil {
 			hook = wrapped
@@ -124,14 +122,14 @@ func (hs *hooksMixin) withProcessPipelineHook(ctx context.Context, cmds []comman
 func (hs *hooksMixin) dialHook(ctx context.Context, network, addr string) (net.Conn, error) {
 	return hs.current.dial(ctx, network, addr)
 }
-func (hs *hooksMixin) processHook(ctx context.Context, cmd command.Cmder) error {
+func (hs *hooksMixin) processHook(ctx context.Context, cmd Cmder) error {
 	return hs.current.process(ctx, cmd)
 }
 
-func (hs *hooksMixin) processPipelineHook(ctx context.Context, cmds []command.Cmder) error {
+func (hs *hooksMixin) processPipelineHook(ctx context.Context, cmds []Cmder) error {
 	return hs.current.pipeline(ctx, cmds)
 }
 
-func (hs *hooksMixin) processTxPipelineHook(ctx context.Context, cmds []command.Cmder) error {
+func (hs *hooksMixin) processTxPipelineHook(ctx context.Context, cmds []Cmder) error {
 	return hs.current.txPipeline(ctx, cmds)
 }

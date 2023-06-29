@@ -1,6 +1,8 @@
-package command
+package redis
 
 import (
+	"context"
+
 	"github.com/lufeijun/go-tool-redis/redis/tool/proto"
 	"github.com/lufeijun/go-tool-redis/redis/tool/util"
 )
@@ -13,6 +15,15 @@ type BoolCmd struct {
 }
 
 var _ Cmder = (*BoolCmd)(nil)
+
+func NewBoolCmd(ctx context.Context, args ...interface{}) *BoolCmd {
+	return &BoolCmd{
+		baseCmd: baseCmd{
+			ctx:  ctx,
+			args: args,
+		},
+	}
+}
 
 func (cmd *BoolCmd) SetVal(val bool) {
 	cmd.val = val

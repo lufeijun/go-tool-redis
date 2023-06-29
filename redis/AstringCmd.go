@@ -1,6 +1,7 @@
-package command
+package redis
 
 import (
+	"context"
 	"strconv"
 	"time"
 
@@ -15,6 +16,15 @@ type StringCmd struct {
 }
 
 var _ Cmder = (*StringCmd)(nil)
+
+func NewStringCmd(ctx context.Context, args ...interface{}) *StringCmd {
+	return &StringCmd{
+		baseCmd: baseCmd{
+			ctx:  ctx,
+			args: args,
+		},
+	}
+}
 
 // 设置值
 func (cmd *StringCmd) SetVal(val string) {

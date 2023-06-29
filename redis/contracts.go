@@ -1,4 +1,4 @@
-package command
+package redis
 
 import (
 	"context"
@@ -52,6 +52,8 @@ type Cmdable interface {
 	TxPipeline() Pipeliner
 
 	Get(ctx context.Context, key string) *StringCmd
+
+	ReadOnly(ctx context.Context) *StatusCmd
 }
 
 type Pipeliner interface {
@@ -72,4 +74,8 @@ type Pipeliner interface {
 
 	// Exec is to send all the commands buffered in the pipeline to the redis-server.
 	Exec(ctx context.Context) ([]Cmder, error)
+}
+
+type timeoutError interface {
+	Timeout() bool
 }

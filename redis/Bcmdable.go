@@ -1,4 +1,4 @@
-package command
+package redis
 
 import (
 	"context"
@@ -16,6 +16,18 @@ func (c cmdable) Wait(ctx context.Context, numSlaves int, timeout time.Duration)
 
 func (c cmdable) Command(ctx context.Context) *CommandsInfoCmd {
 	cmd := NewCommandsInfoCmd(ctx, "command")
+	_ = c(ctx, cmd)
+	return cmd
+}
+
+func (c cmdable) Get(ctx context.Context, key string) *StringCmd {
+	cmd := NewStringCmd(ctx, "get", key)
+	_ = c(ctx, cmd)
+	return cmd
+}
+
+func (c cmdable) ReadOnly(ctx context.Context) *StatusCmd {
+	cmd := NewStatusCmd(ctx, "readonly")
 	_ = c(ctx, cmd)
 	return cmd
 }

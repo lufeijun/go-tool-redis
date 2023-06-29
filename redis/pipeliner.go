@@ -3,41 +3,18 @@ package redis
 import (
 	"context"
 	"errors"
-
-	"github.com/lufeijun/go-tool-redis/redis/command"
 )
 
-type pipelineExecer func(context.Context, []command.Cmder) error
+type pipelineExecer func(context.Context, []Cmder) error
 
-// 因为造成了循环引用，暂时放在了 command 包中
-// type Pipeliner interface {
-// 	command.StatefulCmdable
-
-// 	// Len is to obtain the number of commands in the pipeline that have not yet been executed.
-// 	Len() int
-
-// 	// Do is an API for executing any command.
-// 	// If a certain Redis command is not yet supported, you can use Do to execute it.
-// 	Do(ctx context.Context, args ...interface{}) *command.Cmd
-
-// 	// Process is to put the commands to be executed into the pipeline buffer.
-// 	Process(ctx context.Context, cmd command.Cmder) error
-
-// 	// Discard is to discard all commands in the cache that have not yet been executed.
-// 	Discard()
-
-// 	// Exec is to send all the commands buffered in the pipeline to the redis-server.
-// 	Exec(ctx context.Context) ([]command.Cmder, error)
-// }
-
-var _ command.Pipeliner = (*Pipeline)(nil)
+var _ Pipeliner = (*Pipeline)(nil)
 
 type Pipeline struct {
 	cmdable
 	statefulCmdable
 
 	exec pipelineExecer
-	cmds []command.Cmder
+	cmds []Cmder
 }
 
 func (c *Pipeline) init() {
@@ -51,8 +28,8 @@ func (c *Pipeline) Len() int {
 }
 
 // Do queues the custom command for later execution.
-func (c *Pipeline) Do(ctx context.Context, args ...interface{}) *command.Cmd {
-	cmd := command.NewCmd(ctx, args...)
+func (c *Pipeline) Do(ctx context.Context, args ...interface{}) *Cmd {
+	cmd := NewCmd(ctx, args...)
 	if len(args) == 0 {
 		cmd.SetErr(errors.New("redis: please enter the command to be executed"))
 		return cmd
@@ -62,7 +39,7 @@ func (c *Pipeline) Do(ctx context.Context, args ...interface{}) *command.Cmd {
 }
 
 // Process queues the cmd for later execution.
-func (c *Pipeline) Process(ctx context.Context, cmd command.Cmder) error {
+func (c *Pipeline) Process(ctx context.Context, cmd Cmder) error {
 	c.cmds = append(c.cmds, cmd)
 	return nil
 }
@@ -77,7 +54,7 @@ func (c *Pipeline) Discard() {
 //
 // Exec always returns list of commands and error of the first failed
 // command if any.
-func (c *Pipeline) Exec(ctx context.Context) ([]command.Cmder, error) {
+func (c *Pipeline) Exec(ctx context.Context) ([]Cmder, error) {
 	if len(c.cmds) == 0 {
 		return nil, nil
 	}
@@ -88,21 +65,21 @@ func (c *Pipeline) Exec(ctx context.Context) ([]command.Cmder, error) {
 	return cmds, c.exec(ctx, cmds)
 }
 
-func (c *Pipeline) Pipelined(ctx context.Context, fn func(command.Pipeliner) error) ([]command.Cmder, error) {
+func (c *Pipeline) Pipelined(ctx context.Context, fn func(Pipeliner) error) ([]Cmder, error) {
 	if err := fn(c); err != nil {
 		return nil, err
 	}
 	return c.Exec(ctx)
 }
 
-func (c *Pipeline) Pipeline() command.Pipeliner {
+func (c *Pipeline) Pipeline() Pipeliner {
 	return c
 }
 
-func (c *Pipeline) TxPipelined(ctx context.Context, fn func(command.Pipeliner) error) ([]command.Cmder, error) {
+func (c *Pipeline) TxPipelined(ctx context.Context, fn func(Pipeliner) error) ([]Cmder, error) {
 	return c.Pipelined(ctx, fn)
 }
 
-func (c *Pipeline) TxPipeline() command.Pipeliner {
+func (c *Pipeline) TxPipeline() Pipeliner {
 	return c
 }
