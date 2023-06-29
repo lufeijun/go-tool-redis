@@ -9,27 +9,28 @@ import (
 
 type pipelineExecer func(context.Context, []command.Cmder) error
 
-type Pipeliner interface {
-	command.StatefulCmdable
+// 因为造成了循环引用，暂时放在了 command 包中
+// type Pipeliner interface {
+// 	command.StatefulCmdable
 
-	// Len is to obtain the number of commands in the pipeline that have not yet been executed.
-	Len() int
+// 	// Len is to obtain the number of commands in the pipeline that have not yet been executed.
+// 	Len() int
 
-	// Do is an API for executing any command.
-	// If a certain Redis command is not yet supported, you can use Do to execute it.
-	Do(ctx context.Context, args ...interface{}) *command.Cmd
+// 	// Do is an API for executing any command.
+// 	// If a certain Redis command is not yet supported, you can use Do to execute it.
+// 	Do(ctx context.Context, args ...interface{}) *command.Cmd
 
-	// Process is to put the commands to be executed into the pipeline buffer.
-	Process(ctx context.Context, cmd command.Cmder) error
+// 	// Process is to put the commands to be executed into the pipeline buffer.
+// 	Process(ctx context.Context, cmd command.Cmder) error
 
-	// Discard is to discard all commands in the cache that have not yet been executed.
-	Discard()
+// 	// Discard is to discard all commands in the cache that have not yet been executed.
+// 	Discard()
 
-	// Exec is to send all the commands buffered in the pipeline to the redis-server.
-	Exec(ctx context.Context) ([]command.Cmder, error)
-}
+// 	// Exec is to send all the commands buffered in the pipeline to the redis-server.
+// 	Exec(ctx context.Context) ([]command.Cmder, error)
+// }
 
-var _ Pipeliner = (*Pipeline)(nil)
+var _ command.Pipeliner = (*Pipeline)(nil)
 
 type Pipeline struct {
 	cmdable
@@ -87,21 +88,21 @@ func (c *Pipeline) Exec(ctx context.Context) ([]command.Cmder, error) {
 	return cmds, c.exec(ctx, cmds)
 }
 
-func (c *Pipeline) Pipelined(ctx context.Context, fn func(Pipeliner) error) ([]command.Cmder, error) {
+func (c *Pipeline) Pipelined(ctx context.Context, fn func(command.Pipeliner) error) ([]command.Cmder, error) {
 	if err := fn(c); err != nil {
 		return nil, err
 	}
 	return c.Exec(ctx)
 }
 
-func (c *Pipeline) Pipeline() Pipeliner {
+func (c *Pipeline) Pipeline() command.Pipeliner {
 	return c
 }
 
-func (c *Pipeline) TxPipelined(ctx context.Context, fn func(Pipeliner) error) ([]command.Cmder, error) {
+func (c *Pipeline) TxPipelined(ctx context.Context, fn func(command.Pipeliner) error) ([]command.Cmder, error) {
 	return c.Pipelined(ctx, fn)
 }
 
-func (c *Pipeline) TxPipeline() Pipeliner {
+func (c *Pipeline) TxPipeline() command.Pipeliner {
 	return c
 }

@@ -1,14 +1,8 @@
 package redis
 
-import (
-	"context"
-
-	"github.com/lufeijun/go-tool-redis/redis/command"
-)
-
 // 可执行命令函数
-type cmdable func(ctx context.Context, cmd command.Cmder) error
-type statefulCmdable func(ctx context.Context, cmd command.Cmder) error
+// type cmdable func(ctx context.Context, cmd command.Cmder) error
+// type statefulCmdable func(ctx context.Context, cmd command.Cmder) error
 
 type Client struct {
 	*baseClient // 基础客户端字段
