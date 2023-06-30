@@ -34,6 +34,38 @@ func TestOne(t *testing.T) {
 
 }
 
+// 看一下是否会主动断开连接
+func TestOne1(t *testing.T) {
+
+	RedisClientPool := redis.NewClient(&redis.Options{
+		Addr:            "192.168.0.87:6379",
+		Password:        "123456",
+		DB:              1,
+		PoolSize:        1,               // 连接池大小
+		MinIdleConns:    1,               // 最小空闲连接数
+		MaxIdleConns:    1,               // 最大空闲连接数
+		ConnMaxLifetime: 3 * time.Second, // 连接最大生存时间
+	})
+
+	ctx := context.Background()
+
+	val, err := RedisClientPool.Get(ctx, "name").Result()
+	fmt.Println(val)
+	if err != nil {
+		fmt.Println("报错了===", err)
+	}
+	time.Sleep(5 * time.Second)
+
+	val, err = RedisClientPool.Get(ctx, "name").Result()
+	fmt.Println(val)
+	if err != nil {
+		fmt.Println("报错了===", err)
+	}
+
+	time.Sleep(5 * time.Second)
+
+}
+
 func TestOne2(t *testing.T) {
 
 	RedisClientPool := redis.NewClient(&redis.Options{
