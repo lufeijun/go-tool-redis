@@ -18,7 +18,7 @@ func NewClient(opt *Options) *Client {
 	}
 	// 客户端初始化逻辑
 	c.init()
-	// c.connPool = newConnPool(opt, c.dialHook)
+	c.connPool = newConnPool(opt, c.dialHook)
 
 	return &c
 }

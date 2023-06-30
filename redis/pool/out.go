@@ -26,3 +26,19 @@ func NewSingleConnPool(pool Pooler, cn *Conn) *SingleConnPool {
 		cn:   cn,
 	}
 }
+
+func NewConnPool(opt *Options) *ConnPool {
+	p := &ConnPool{
+		cfg: opt,
+
+		queue:     make(chan struct{}, opt.PoolSize),
+		conns:     make([]*Conn, 0, opt.PoolSize),
+		idleConns: make([]*Conn, 0, opt.PoolSize),
+	}
+
+	p.connsMu.Lock()
+	p.checkMinIdleConns()
+	p.connsMu.Unlock()
+
+	return p
+}

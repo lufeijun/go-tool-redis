@@ -1,6 +1,9 @@
 package redis
 
 import (
+	"context"
+	"net"
+
 	"github.com/lufeijun/go-tool-redis/redis/pool"
 	"github.com/lufeijun/go-tool-redis/redis/tool/proto"
 )
@@ -66,4 +69,22 @@ func cmdsFirstErr(cmds []Cmder) error {
 		}
 	}
 	return nil
+}
+
+func newConnPool(
+	opt *Options,
+	dialer func(ctx context.Context, network, addr string) (net.Conn, error),
+) *pool.ConnPool {
+	return pool.NewConnPool(&pool.Options{
+		Dialer: func(ctx context.Context) (net.Conn, error) {
+			return dialer(ctx, opt.Network, opt.Addr)
+		},
+		PoolFIFO:        opt.PoolFIFO,
+		PoolSize:        opt.PoolSize,
+		PoolTimeout:     opt.PoolTimeout,
+		MinIdleConns:    opt.MinIdleConns,
+		MaxIdleConns:    opt.MaxIdleConns,
+		ConnMaxIdleTime: opt.ConnMaxIdleTime,
+		ConnMaxLifetime: opt.ConnMaxLifetime,
+	})
 }
