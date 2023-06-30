@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/lufeijun/go-tool-redis/redis/tool/log"
+	"github.com/lufeijun/go-tool-redis/redis/tool/logger"
 )
 
 // 实现 Pooler 接口
@@ -267,7 +267,7 @@ func (p *ConnPool) popIdle() (*Conn, error) {
 func (p *ConnPool) Put(ctx context.Context, cn *Conn) {
 	// 判断是否还有未处理的数据
 	if cn.rd.Buffered() > 0 {
-		log.Logger.Printf(ctx, "Conn has unread data")
+		logger.Logger.Printf(ctx, "Conn has unread data")
 		p.Remove(ctx, cn, BadConnError{})
 		return
 	}

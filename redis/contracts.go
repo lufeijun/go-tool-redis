@@ -36,12 +36,12 @@ type StatefulCmdable interface {
 	Hello(ctx context.Context, ver int, username, password, clientName string) *MapStringInterfaceCmd
 }
 
-// var (
-// 	_ Cmdable = (*Client)(nil)
-// 	_ Cmdable = (*Tx)(nil)
-// 	_ Cmdable = (*Ring)(nil)
-// 	_ Cmdable = (*ClusterClient)(nil)
-// )
+var (
+	_ Cmdable = (*Client)(nil)
+	// _ Cmdable = (*Tx)(nil)
+	// _ Cmdable = (*Ring)(nil)
+	// _ Cmdable = (*ClusterClient)(nil)
+)
 
 // 所有可以执行的命令
 type Cmdable interface {
@@ -51,7 +51,13 @@ type Cmdable interface {
 	TxPipelined(ctx context.Context, fn func(Pipeliner) error) ([]Cmder, error)
 	TxPipeline() Pipeliner
 
+	// string 部分
 	Get(ctx context.Context, key string) *StringCmd
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *StatusCmd
+
+	// hash 部分
+	HSet(ctx context.Context, key string, values ...interface{}) *IntCmd
+	HGet(ctx context.Context, key, field string) *StringCmd
 
 	ReadOnly(ctx context.Context) *StatusCmd
 }
