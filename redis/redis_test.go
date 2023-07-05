@@ -129,14 +129,17 @@ func TestOne3(t *testing.T) {
 func TestOne4(t *testing.T) {
 
 	RedisClientPool := redis.NewClient(&redis.Options{
-		Addr:            "192.168.0.87:6379",
-		Password:        "123456",
-		DB:              1,
-		PoolSize:        1,               // 连接池大小
-		MinIdleConns:    1,               // 最小空闲连接数
-		MaxIdleConns:    1,               // 最大空闲连接数
-		ConnMaxLifetime: 5 * time.Second, // 连接最大生存时间
+		Addr:         "192.168.0.87:6379",
+		Password:     "123456",
+		DB:           1,
+		PoolSize:     1, // 连接池大小
+		MinIdleConns: 1, // 最小空闲连接数
+		MaxIdleConns: 1, // 最大空闲连接数
+		// ConnMaxLifetime: 5 * time.Second, // 连接最大生存时间
 	})
+
+	// fmt.Println("======start=====", time.Now().Format("2006-01-02 15:04:05"))
+	fmt.Println("======start=====")
 
 	ctx := context.Background()
 
@@ -144,6 +147,15 @@ func TestOne4(t *testing.T) {
 	if err != nil {
 		fmt.Println("报错了===", err)
 	}
+
+	time.Sleep(15 * time.Second)
+
+	name, err := RedisClientPool.HGet(ctx, "student2", "name").Result()
+	if err != nil {
+		fmt.Println("报错了===", err)
+	}
+
+	fmt.Println("name===", name)
 
 	fmt.Println("成功设置字段===", val)
 
