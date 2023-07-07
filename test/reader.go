@@ -115,6 +115,8 @@ func (r *Reader) readLine() ([]byte, error) {
 			return nil, err
 		}
 
+		fmt.Println("readLine ErrBufferFull")
+
 		full := make([]byte, len(b))
 		copy(full, b)
 

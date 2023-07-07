@@ -72,6 +72,12 @@ func Out() {
 	// wr.WriteArgs(args)
 	// bw.Flush()
 
+	// fmt.Println("========= get =============")
+	// args = make([]interface{}, 0)
+	// args = append(args, "get", "hello")
+	// wr.WriteArgs(args)
+	// bw.Flush()
+
 	fmt.Println("out over")
 }
 

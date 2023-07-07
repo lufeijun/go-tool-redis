@@ -92,11 +92,13 @@ func (r *Reader) PeekReplyType() (byte, error) {
 
 // ReadLine Return a valid reply, it will check the protocol or redis error,
 // and discard the attribute type.
+// 对读取结果进行过滤处理
 func (r *Reader) ReadLine() ([]byte, error) {
 	line, err := r.readLine()
 	if err != nil {
 		return nil, err
 	}
+	// 通过第一个字符，对返回的数据进行 resp 解析
 	switch line[0] {
 	case RespError:
 		return nil, ParseErrorReply(line)
@@ -127,6 +129,8 @@ func (r *Reader) ReadLine() ([]byte, error) {
 // readLine returns an error if:
 //   - there is a pending read error;
 //   - or line does not end with \r\n.
+//
+// 从 IO 读取响应
 func (r *Reader) readLine() ([]byte, error) {
 	b, err := r.rd.ReadSlice('\n')
 	if err != nil {
@@ -148,9 +152,11 @@ func (r *Reader) readLine() ([]byte, error) {
 	if len(b) <= 2 || b[len(b)-1] != '\n' || b[len(b)-2] != '\r' {
 		return nil, fmt.Errorf("redis: invalid reply: %q", b)
 	}
+	// 从网络 IO 中读取的数据，并去掉 \r\n
 	return b[:len(b)-2], nil
 }
 
+// 按照 resp 协议，解析返回值
 func (r *Reader) ReadReply() (interface{}, error) {
 	line, err := r.ReadLine()
 	if err != nil {
@@ -158,20 +164,20 @@ func (r *Reader) ReadReply() (interface{}, error) {
 	}
 
 	switch line[0] {
-	case RespStatus:
+	case RespStatus: // 简单字符串  +hello world\r\n
 		return string(line[1:]), nil
-	case RespInt:
+	case RespInt: // 整数，:1234\r\n
 		return util.ParseInt(line[1:], 10, 64)
-	case RespFloat:
+	case RespFloat: // 浮点数，,1.23\r\n
 		return r.readFloat(line)
-	case RespBool:
+	case RespBool: // 布尔值，#t\r\n
 		return r.readBool(line)
 	case RespBigInt:
 		return r.readBigInt(line)
 
-	case RespString:
+	case RespString: // 字符串，$6\r\nfoobar\r\n
 		return r.readStringReply(line)
-	case RespVerbatim:
+	case RespVerbatim: //
 		return r.readVerb(line)
 
 	case RespArray, RespSet, RespPush:
@@ -182,6 +188,7 @@ func (r *Reader) ReadReply() (interface{}, error) {
 	return nil, fmt.Errorf("redis: can't parse %.100q", line)
 }
 
+// 读取浮点数  浮点数，,1.23\r\n
 func (r *Reader) readFloat(line []byte) (float64, error) {
 	v := string(line[1:])
 	switch string(line[1:]) {
@@ -195,6 +202,7 @@ func (r *Reader) readFloat(line []byte) (float64, error) {
 	return strconv.ParseFloat(v, 64)
 }
 
+// 读取布尔值 #t\r\n
 func (r *Reader) readBool(line []byte) (bool, error) {
 	switch string(line[1:]) {
 	case "t":
@@ -213,6 +221,7 @@ func (r *Reader) readBigInt(line []byte) (*big.Int, error) {
 	return nil, fmt.Errorf("redis: can't parse bigInt reply: %q", line)
 }
 
+// 读取字符串，$6\r\nfoobar\r\n
 func (r *Reader) readStringReply(line []byte) (string, error) {
 	n, err := replyLen(line)
 	if err != nil {
@@ -220,6 +229,7 @@ func (r *Reader) readStringReply(line []byte) (string, error) {
 	}
 
 	b := make([]byte, n+2)
+	// 全部读取
 	_, err = io.ReadFull(r.rd, b)
 	if err != nil {
 		return "", err
@@ -239,6 +249,7 @@ func (r *Reader) readVerb(line []byte) (string, error) {
 	return s[4:], nil
 }
 
+// 读取集合、数组了
 func (r *Reader) readSlice(line []byte) ([]interface{}, error) {
 	n, err := replyLen(line)
 	if err != nil {
@@ -247,6 +258,7 @@ func (r *Reader) readSlice(line []byte) ([]interface{}, error) {
 
 	val := make([]interface{}, n)
 	for i := 0; i < len(val); i++ {
+		// 一个个解析，组成数组
 		v, err := r.ReadReply()
 		if err != nil {
 			if err == Nil {
@@ -264,12 +276,16 @@ func (r *Reader) readSlice(line []byte) ([]interface{}, error) {
 	return val, nil
 }
 
+// 解析 map
 func (r *Reader) readMap(line []byte) (map[interface{}]interface{}, error) {
+	// 获取 map 的长度
 	n, err := replyLen(line)
 	if err != nil {
 		return nil, err
 	}
 	m := make(map[interface{}]interface{}, n)
+
+	// 逐个解析 key 和 value
 	for i := 0; i < n; i++ {
 		k, err := r.ReadReply()
 		if err != nil {
@@ -292,8 +308,9 @@ func (r *Reader) readMap(line []byte) (map[interface{}]interface{}, error) {
 	return m, nil
 }
 
-// -------------------------------
+// --------------提供一些对外函数-----------------
 
+// 用户主动要转成 int，尽所有可能，把返回值转化为 int64
 func (r *Reader) ReadInt() (int64, error) {
 	line, err := r.ReadLine()
 	if err != nil {
@@ -485,6 +502,7 @@ func (r *Reader) DiscardNext() error {
 }
 
 // Discard the data represented by line.
+// 判断是否放弃
 func (r *Reader) Discard(line []byte) (err error) {
 	if len(line) == 0 {
 		return errors.New("redis: invalid line")
@@ -524,6 +542,7 @@ func (r *Reader) Discard(line []byte) (err error) {
 	return fmt.Errorf("redis: can't parse %.100q", line)
 }
 
+// 解析回复的长度
 func replyLen(line []byte) (n int, err error) {
 	n, err = util.Atoi(line[1:])
 	if err != nil {

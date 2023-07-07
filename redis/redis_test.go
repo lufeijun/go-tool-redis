@@ -160,3 +160,25 @@ func TestOne4(t *testing.T) {
 	fmt.Println("成功设置字段===", val)
 
 }
+
+// 获取超过 reader buffer 的数据
+func TestOne6(t *testing.T) {
+	ctx := context.Background()
+
+	RedisClientPool := redis.NewClient(&redis.Options{
+		Addr:         "192.168.0.87:6379",
+		Password:     "123456",
+		DB:           1,
+		PoolSize:     1, // 连接池大小
+		MinIdleConns: 1, // 最小空闲连接数
+		MaxIdleConns: 1, // 最大空闲连接数
+	})
+
+	val, err := RedisClientPool.Get(ctx, "hello").Result()
+	fmt.Println(len(val))
+	// fmt.Println(val)
+	if err != nil {
+		fmt.Println("报错了===", err)
+	}
+
+}
