@@ -6,6 +6,7 @@ import (
 )
 
 // 给用户自定义的钩子接口
+// 这里设计的不太好，用户如果只想设置 DialHook 这个钩子函数，但其他哪怕不想设置，还得实现
 type Hook interface {
 	DialHook(next DialHook) DialHook
 	ProcessHook(next ProcessHook) ProcessHook
@@ -23,7 +24,7 @@ type hooks struct {
 	dial       DialHook            // 当创建网络连接时调用的hook
 	process    ProcessHook         // 执行命令时调用的hook
 	pipeline   ProcessPipelineHook // 执行管道命令时调用的hook
-	txPipeline ProcessPipelineHook
+	txPipeline ProcessPipelineHook // 执行事务管道命令时调用的hook
 }
 
 func (h *hooks) setDefaults() {
@@ -56,7 +57,7 @@ func (hs *hooksMixin) initHooks(hooks hooks) {
 
 // 链？
 func (hs *hooksMixin) chain() {
-	// 内部 hooks 初始化
+	// 内部 hooks 初始化，系统默认的永远得是嘴里层的那个
 	hs.initial.setDefaults()
 
 	// 重置当前 hooks
@@ -65,7 +66,7 @@ func (hs *hooksMixin) chain() {
 	hs.current.pipeline = hs.initial.pipeline
 	hs.current.txPipeline = hs.initial.txPipeline
 
-	// 遍历 slice
+	// 遍历 slice，注意遍历顺序，从 length - 1 开始，到 0 结束
 	for i := len(hs.slice) - 1; i >= 0; i-- {
 		if wrapped := hs.slice[i].DialHook(hs.current.dial); wrapped != nil {
 			hs.current.dial = wrapped

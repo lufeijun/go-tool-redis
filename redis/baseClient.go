@@ -91,7 +91,7 @@ func (c *baseClient) initConn(ctx context.Context, cn *pool.Conn) error {
 
 	// for redis-server versions that do not support the HELLO command,
 	// RESP2 will continue to be used.
-	// 发送简单命令，判断是否支持 HELLO 命令，判断是否可以连接上 redis
+	// 发送简单命令，判断是否支持 HELLO 命令，如果支持，就使用 RESP3 协议
 	if err := conn.Hello(ctx, protocol, username, password, "").Err(); err == nil {
 		auth = true
 	} else if !isRedisError(err) {
