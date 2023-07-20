@@ -1,5 +1,6 @@
 # go-tool-redis
-tool 
+
+学习库地址：https://github.com/redis/go-redis/tree/master
 
 
 # 涉及到的点
