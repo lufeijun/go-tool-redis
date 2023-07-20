@@ -1,11 +1,3 @@
-# go-tool-redis
-tool 
+# go-tool-study
 
-
-# 涉及到的点
-
-* redis 网络协议
-  1、tcp 链接
-  2、用户密码验证
-* 连接池技术
-* 钩子函数设计
+找一下公共库，练习编码
