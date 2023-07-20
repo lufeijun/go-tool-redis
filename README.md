@@ -1,3 +1,3 @@
-# go-tool-study
+# wechat SDK
 
-找一下公共库，练习编码
+https://github.com/silenceper/wechat
