@@ -8,6 +8,7 @@ import (
 	"github.com/lufeijun/go-tool-wechat/wechat"
 	"github.com/lufeijun/go-tool-wechat/wechat/cache"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/offConfig"
+	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/user"
 )
 
 func main() {
@@ -37,12 +38,35 @@ func main() {
 	}
 
 	officialAccount := wc.GetOfficialAccount(cfg)
+	// token, err := officialAccount.GetAccessToken()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println(token)
+	// fmt.Println("=====================")
 
-	token, err := officialAccount.GetAccessToken()
-	if err != nil {
-		panic(err)
+	// basic := officialAccount.GetBasic()
+	// // fmt.Println(basic.GetAPIDomainIP())
+	// short, err := basic.Long2ShortURL("https://developers.weixin.qq.com/doc/oplatform/Third-party_Platforms/2.0/api/qrcode/shorturl.html#%E8%AF%B7%E6%B1%82%E5%9C%B0%E5%9D%80")
+	// if err != nil {
+	// 	fmt.Println("short err：", err)
+	// 	return
+	// }
+	// fmt.Println(short)
+
+	// material := officialAccount.GetMaterial()
+	// rmc, err2 := material.GetMaterialCount()
+	// if err2 != nil {
+	// 	fmt.Println("short err：", err2)
+	// 	return
+	// }
+	// fmt.Println(rmc)
+
+	us := officialAccount.GetUser()
+	users, err3 := us.BatchGetUserInfo(user.BatchGetUserInfoParams{})
+	if err3 != nil {
+		fmt.Println("short err：", err3)
+		return
 	}
-
-	fmt.Println(token)
-
+	fmt.Println(users)
 }
