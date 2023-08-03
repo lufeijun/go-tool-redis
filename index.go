@@ -26,7 +26,7 @@ func main() {
 
 	cfg := &offConfig.Config{
 		AppID:     "wx82499d23a58480fa",
-		AppSecret: "115e73b25c9cceab35da8565c80b64b7",
+		AppSecret: "115e73b25c9cc111111111eab35da8565c80b64b7",
 		Token:     "motherfucker",
 		//EncodingAESKey: "xxxx",
 		Cache: redisCache,

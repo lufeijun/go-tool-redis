@@ -6,11 +6,14 @@ import (
 	"github.com/lufeijun/go-tool-wechat/wcontext"
 	"github.com/lufeijun/go-tool-wechat/wechat/credential"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/basic"
+	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/broadcast"
+	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/device"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/draft"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/freepublish"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/js"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/material"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/menu"
+	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/message"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/oauth"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/offConfig"
 	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/user"
@@ -27,10 +30,10 @@ type OfficialAccount struct {
 	freepublish *freepublish.FreePublish
 	js          *js.Js
 	user        *user.User
-	// templateMsg  *message.Template
-	// managerMsg   *message.Manager
-	// device       *device.Device
-	// broadcast    *broadcast.Broadcast
+	templateMsg *message.Template
+	managerMsg  *message.Manager
+	device      *device.Device
+	broadcast   *broadcast.Broadcast
 	// datacube     *datacube.DataCube
 	// ocr          *ocr.OCR
 	// subscribeMsg *message.Subscribe
@@ -127,3 +130,70 @@ func (officialAccount *OfficialAccount) GetUser() *user.User {
 	}
 	return officialAccount.user
 }
+
+// GetTemplate 模板消息接口
+func (officialAccount *OfficialAccount) GetTemplate() *message.Template {
+	if officialAccount.templateMsg == nil {
+		officialAccount.templateMsg = message.NewTemplate(officialAccount.ctx)
+	}
+	return officialAccount.templateMsg
+}
+
+// GetCustomerMessageManager 客服消息接口
+func (officialAccount *OfficialAccount) GetCustomerMessageManager() *message.Manager {
+	if officialAccount.managerMsg == nil {
+		officialAccount.managerMsg = message.NewMessageManager(officialAccount.ctx)
+	}
+	return officialAccount.managerMsg
+}
+
+// GetDevice 获取智能设备的实例
+func (officialAccount *OfficialAccount) GetDevice() *device.Device {
+	if officialAccount.device == nil {
+		officialAccount.device = device.NewDevice(officialAccount.ctx)
+	}
+	return officialAccount.device
+}
+
+// GetBroadcast 群发消息
+// TODO 待完善
+func (officialAccount *OfficialAccount) GetBroadcast() *broadcast.Broadcast {
+	if officialAccount.broadcast == nil {
+		officialAccount.broadcast = broadcast.NewBroadcast(officialAccount.ctx)
+	}
+	return officialAccount.broadcast
+}
+
+// // GetDataCube 数据统计
+// func (officialAccount *OfficialAccount) GetDataCube() *datacube.DataCube {
+// 	if officialAccount.datacube == nil {
+// 		officialAccount.datacube = datacube.NewCube(officialAccount.ctx)
+// 	}
+// 	return officialAccount.datacube
+// }
+
+// // GetOCR OCR接口
+// func (officialAccount *OfficialAccount) GetOCR() *ocr.OCR {
+// 	if officialAccount.ocr == nil {
+// 		officialAccount.ocr = ocr.NewOCR(officialAccount.ctx)
+// 	}
+// 	return officialAccount.ocr
+// }
+
+// // GetSubscribe 公众号订阅消息
+// func (officialAccount *OfficialAccount) GetSubscribe() *message.Subscribe {
+// 	if officialAccount.subscribeMsg == nil {
+// 		officialAccount.subscribeMsg = message.NewSubscribe(officialAccount.ctx)
+// 	}
+// 	return officialAccount.subscribeMsg
+// }
+
+// // GetCustomerServiceManager 客服管理
+// func (officialAccount *OfficialAccount) GetCustomerServiceManager() *customerservice.Manager {
+// 	return customerservice.NewCustomerServiceManager(officialAccount.ctx)
+// }
+
+// // GetOpenAPI openApi管理接口
+// func (officialAccount *OfficialAccount) GetOpenAPI() *openapi.OpenAPI {
+// 	return openapi.NewOpenAPI(officialAccount.ctx)
+// }
