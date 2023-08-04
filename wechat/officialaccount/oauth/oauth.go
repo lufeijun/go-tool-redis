@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/lufeijun/go-tool-wechat/wcontext"
+	"github.com/lufeijun/go-tool-wechat/wechat/officialaccount/wcontext"
 	"github.com/lufeijun/go-tool-wechat/wechat/util"
 )
 
