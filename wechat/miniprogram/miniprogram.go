@@ -2,9 +2,25 @@ package miniprogram
 
 import (
 	"github.com/lufeijun/go-tool-wechat/wechat/credential"
+	"github.com/lufeijun/go-tool-wechat/wechat/internal/openapi"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/analysis"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/auth"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/business"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/content"
 	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/encryptor"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/message"
 	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/miniconfig"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/privacy"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/qrcode"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/riskcontrol"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/security"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/shortlink"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/subscribe"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/tcb"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/urllink"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/urlscheme"
 	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/wcontext"
+	"github.com/lufeijun/go-tool-wechat/wechat/miniprogram/werun"
 )
 
 // MiniProgram 微信小程序相关API
@@ -38,81 +54,81 @@ func (miniProgram *MiniProgram) GetEncryptor() *encryptor.Encryptor {
 }
 
 // // GetAuth 登录/用户信息相关接口
-// func (miniProgram *MiniProgram) GetAuth() *auth.Auth {
-// 	return auth.NewAuth(miniProgram.ctx)
-// }
+func (miniProgram *MiniProgram) GetAuth() *auth.Auth {
+	return auth.NewAuth(miniProgram.ctx)
+}
 
-// // GetAnalysis 数据分析
-// func (miniProgram *MiniProgram) GetAnalysis() *analysis.Analysis {
-// 	return analysis.NewAnalysis(miniProgram.ctx)
-// }
+// GetAnalysis 数据分析
+func (miniProgram *MiniProgram) GetAnalysis() *analysis.Analysis {
+	return analysis.NewAnalysis(miniProgram.ctx)
+}
 
-// // GetBusiness 业务接口
-// func (miniProgram *MiniProgram) GetBusiness() *business.Business {
-// 	return business.NewBusiness(miniProgram.ctx)
-// }
+// GetBusiness 业务接口
+func (miniProgram *MiniProgram) GetBusiness() *business.Business {
+	return business.NewBusiness(miniProgram.ctx)
+}
 
-// // GetPrivacy 小程序隐私协议相关API
-// func (miniProgram *MiniProgram) GetPrivacy() *privacy.Privacy {
-// 	return privacy.NewPrivacy(miniProgram.ctx)
-// }
+// GetPrivacy 小程序隐私协议相关API
+func (miniProgram *MiniProgram) GetPrivacy() *privacy.Privacy {
+	return privacy.NewPrivacy(miniProgram.ctx)
+}
 
-// // GetQRCode 小程序码相关API
-// func (miniProgram *MiniProgram) GetQRCode() *qrcode.QRCode {
-// 	return qrcode.NewQRCode(miniProgram.ctx)
-// }
+// GetQRCode 小程序码相关API
+func (miniProgram *MiniProgram) GetQRCode() *qrcode.QRCode {
+	return qrcode.NewQRCode(miniProgram.ctx)
+}
 
 // // GetTcb 小程序云开发API
-// func (miniProgram *MiniProgram) GetTcb() *tcb.Tcb {
-// 	return tcb.NewTcb(miniProgram.ctx)
-// }
+func (miniProgram *MiniProgram) GetTcb() *tcb.Tcb {
+	return tcb.NewTcb(miniProgram.ctx)
+}
 
-// // GetSubscribe 小程序订阅消息
-// func (miniProgram *MiniProgram) GetSubscribe() *subscribe.Subscribe {
-// 	return subscribe.NewSubscribe(miniProgram.ctx)
-// }
+// GetSubscribe 小程序订阅消息
+func (miniProgram *MiniProgram) GetSubscribe() *subscribe.Subscribe {
+	return subscribe.NewSubscribe(miniProgram.ctx)
+}
 
-// // GetCustomerMessage 客服消息接口
-// func (miniProgram *MiniProgram) GetCustomerMessage() *message.Manager {
-// 	return message.NewCustomerMessageManager(miniProgram.ctx)
-// }
+// GetCustomerMessage 客服消息接口
+func (miniProgram *MiniProgram) GetCustomerMessage() *message.Manager {
+	return message.NewCustomerMessageManager(miniProgram.ctx)
+}
 
-// // GetWeRun 微信运动接口
-// func (miniProgram *MiniProgram) GetWeRun() *werun.WeRun {
-// 	return werun.NewWeRun(miniProgram.ctx)
-// }
+// GetWeRun 微信运动接口
+func (miniProgram *MiniProgram) GetWeRun() *werun.WeRun {
+	return werun.NewWeRun(miniProgram.ctx)
+}
 
 // // GetContentSecurity 内容安全接口
-// func (miniProgram *MiniProgram) GetContentSecurity() *content.Content {
-// 	return content.NewContent(miniProgram.ctx)
-// }
+func (miniProgram *MiniProgram) GetContentSecurity() *content.Content {
+	return content.NewContent(miniProgram.ctx)
+}
 
-// // GetURLLink 小程序URL Link接口
-// func (miniProgram *MiniProgram) GetURLLink() *urllink.URLLink {
-// 	return urllink.NewURLLink(miniProgram.ctx)
-// }
+// GetURLLink 小程序URL Link接口
+func (miniProgram *MiniProgram) GetURLLink() *urllink.URLLink {
+	return urllink.NewURLLink(miniProgram.ctx)
+}
 
-// // GetRiskControl 安全风控接口
-// func (miniProgram *MiniProgram) GetRiskControl() *riskcontrol.RiskControl {
-// 	return riskcontrol.NewRiskControl(miniProgram.ctx)
-// }
+// GetRiskControl 安全风控接口
+func (miniProgram *MiniProgram) GetRiskControl() *riskcontrol.RiskControl {
+	return riskcontrol.NewRiskControl(miniProgram.ctx)
+}
 
-// // GetSecurity 内容安全接口
-// func (miniProgram *MiniProgram) GetSecurity() *security.Security {
-// 	return security.NewSecurity(miniProgram.ctx)
-// }
+// GetSecurity 内容安全接口
+func (miniProgram *MiniProgram) GetSecurity() *security.Security {
+	return security.NewSecurity(miniProgram.ctx)
+}
 
-// // GetShortLink 小程序短链接口
-// func (miniProgram *MiniProgram) GetShortLink() *shortlink.ShortLink {
-// 	return shortlink.NewShortLink(miniProgram.ctx)
-// }
+// GetShortLink 小程序短链接口
+func (miniProgram *MiniProgram) GetShortLink() *shortlink.ShortLink {
+	return shortlink.NewShortLink(miniProgram.ctx)
+}
 
-// // GetSURLScheme 小程序URL Scheme接口
-// func (miniProgram *MiniProgram) GetSURLScheme() *urlscheme.URLScheme {
-// 	return urlscheme.NewURLScheme(miniProgram.ctx)
-// }
+// GetSURLScheme 小程序URL Scheme接口
+func (miniProgram *MiniProgram) GetSURLScheme() *urlscheme.URLScheme {
+	return urlscheme.NewURLScheme(miniProgram.ctx)
+}
 
-// // GetOpenAPI openApi管理接口
-// func (miniProgram *MiniProgram) GetOpenAPI() *openapi.OpenAPI {
-// 	return openapi.NewOpenAPI(miniProgram.ctx)
-// }
+// GetOpenAPI openApi管理接口
+func (miniProgram *MiniProgram) GetOpenAPI() *openapi.OpenAPI {
+	return openapi.NewOpenAPI(miniProgram.ctx)
+}
