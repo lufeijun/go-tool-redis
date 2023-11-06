@@ -17,8 +17,8 @@ type Person struct {
 
 func main() {
 	// client, _err := CreateClient(
-	// 	tool.String("LTAI5tCi7UZEr4FKouV4pWCS"),
-	// 	tool.String("ImxIl5N53xPFY4Vt2wlvByeiGxTD2A"),
+	// 	tool.String(""),
+	// 	tool.String(""),
 	// )
 	// if _err != nil {
 	// 	fmt.Println("客户端连接失败：", _err)
