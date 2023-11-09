@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"github.com/lufeijun/go-tool-aliyun/common"
+	"github.com/lufeijun/go-tool-aliyun/credential"
 )
 
 type GlobalParameters struct {
@@ -50,7 +51,7 @@ type Config struct {
 	// https proxy
 	HttpsProxy *string `json:"httpsProxy,omitempty" xml:"httpsProxy,omitempty"`
 	// credential
-	// Credential credential.Credential `json:"credential,omitempty" xml:"credential,omitempty"`
+	Credential credential.Credential `json:"credential,omitempty" xml:"credential,omitempty"`
 	// endpoint
 	Endpoint *string `json:"endpoint,omitempty" xml:"endpoint,omitempty"`
 	// proxy white list
