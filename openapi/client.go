@@ -1,7 +1,6 @@
 package openapi
 
 import (
-	"github.com/alibabacloud-go/tea/tea"
 	"github.com/lufeijun/go-tool-aliyun/common"
 	"github.com/lufeijun/go-tool-aliyun/credential"
 	"github.com/lufeijun/go-tool-aliyun/service"
@@ -125,6 +124,14 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 		}
 		_result = _body
 		return _result, _err
+	} else {
+		_result = make(map[string]interface{})
+		_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, request, runtime)
+		if _err != nil {
+			return _result, _err
+		}
+		_result = _body
+		return _result, _err
 	}
 
 	// else if common.BoolValue(common.EqualString(params.Style, common.String("ROA"))) && common.BoolValue(common.EqualString(params.ReqBodyType, common.String("json"))) {
@@ -138,14 +145,6 @@ func (client *Client) CallApi(params *Params, request *OpenApiRequest, runtime *
 	// } else if common.BoolValue(common.EqualString(params.Style, common.String("ROA"))) {
 	// 	_result = make(map[string]interface{})
 	// 	_body, _err := client.DoROARequestWithForm(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.Pathname, params.BodyType, request, runtime)
-	// 	if _err != nil {
-	// 		return _result, _err
-	// 	}
-	// 	_result = _body
-	// 	return _result, _err
-	// } else { 下次整这块
-	// 	_result = make(map[string]interface{})
-	// 	_body, _err := client.DoRPCRequest(params.Action, params.Version, params.Protocol, params.Method, params.AuthType, params.BodyType, request, runtime)
 	// 	if _err != nil {
 	// 		return _result, _err
 	// 	}
@@ -364,9 +363,9 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				err["statusCode"] = response_.StatusCode
 				_err = common.NewSDKError(map[string]interface{}{
 					"code":               common.ToString(DefaultAny(err["Code"], err["code"])),
-					"message":            "code: " + common.ToString(tea.IntValue(response_.StatusCode)) + ", " + tea.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + tea.ToString(DefaultAny(err["RequestId"], err["requestId"])),
+					"message":            "code: " + common.ToString(common.IntValue(response_.StatusCode)) + ", " + common.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + common.ToString(DefaultAny(err["RequestId"], err["requestId"])),
 					"data":               err,
-					"description":        tea.ToString(DefaultAny(err["Description"], err["description"])),
+					"description":        common.ToString(DefaultAny(err["Description"], err["description"])),
 					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
 				})
 				return _result, _err
@@ -419,7 +418,7 @@ func (client *Client) DoRequest(params *Params, request *OpenApiRequest, runtime
 				}
 
 				_result = make(map[string]interface{})
-				_err = tea.Convert(map[string]interface{}{
+				_err = common.Convert(map[string]interface{}{
 					"body":       res,
 					"headers":    response_.Headers,
 					"statusCode": common.IntValue(response_.StatusCode),
@@ -468,6 +467,274 @@ func (client *Client) GetRpcHeaders() (_result map[string]*string, _err error) {
 	client.Headers = nil
 	_result = headers
 	return _result, _err
+}
+
+func (client *Client) DoRPCRequest(action *string, version *string, protocol *string, method *string, authType *string, bodyType *string, request *OpenApiRequest, runtime *service.RuntimeOptions) (_result map[string]interface{}, _err error) {
+	// 数据验证
+	_err = common.Validate(request)
+	if _err != nil {
+		return _result, _err
+	}
+	_err = common.Validate(runtime)
+	if _err != nil {
+		return _result, _err
+	}
+
+	_runtime := map[string]interface{}{
+		"timeouted":      "retry",
+		"key":            common.StringValue(common.DefaultString(runtime.Key, client.Key)),
+		"cert":           common.StringValue(common.DefaultString(runtime.Cert, client.Cert)),
+		"ca":             common.StringValue(common.DefaultString(runtime.Ca, client.Ca)),
+		"readTimeout":    common.IntValue(common.DefaultNumber(runtime.ReadTimeout, client.ReadTimeout)),
+		"connectTimeout": common.IntValue(common.DefaultNumber(runtime.ConnectTimeout, client.ConnectTimeout)),
+		"httpProxy":      common.StringValue(common.DefaultString(runtime.HttpProxy, client.HttpProxy)),
+		"httpsProxy":     common.StringValue(common.DefaultString(runtime.HttpsProxy, client.HttpsProxy)),
+		"noProxy":        common.StringValue(common.DefaultString(runtime.NoProxy, client.NoProxy)),
+		"socks5Proxy":    common.StringValue(common.DefaultString(runtime.Socks5Proxy, client.Socks5Proxy)),
+		"socks5NetWork":  common.StringValue(common.DefaultString(runtime.Socks5NetWork, client.Socks5NetWork)),
+		"maxIdleConns":   common.IntValue(common.DefaultNumber(runtime.MaxIdleConns, client.MaxIdleConns)),
+		"retry": map[string]interface{}{
+			"retryable":   common.BoolValue(runtime.Autoretry),
+			"maxAttempts": common.IntValue(common.DefaultNumber(runtime.MaxAttempts, common.Int(3))),
+		},
+		"backoff": map[string]interface{}{
+			"policy": common.StringValue(common.DefaultString(runtime.BackoffPolicy, common.String("no"))),
+			"period": common.IntValue(common.DefaultNumber(runtime.BackoffPeriod, common.Int(1))),
+		},
+		"ignoreSSL": common.BoolValue(runtime.IgnoreSSL),
+	}
+
+	_resp := make(map[string]interface{})
+
+	// 重试+请求 start
+	for _retryTimes := 0; common.BoolValue(common.AllowRetry(_runtime["retry"], common.Int(_retryTimes))); _retryTimes++ {
+		if _retryTimes > 0 {
+			_backoffTime := common.GetBackoffTime(_runtime["backoff"], common.Int(_retryTimes))
+			if common.IntValue(_backoffTime) > 0 {
+				common.Sleep(_backoffTime)
+			}
+		}
+
+		// 请求封装 start
+		_resp, _err = func() (map[string]interface{}, error) {
+			request_ := common.NewRequest()
+			request_.Protocol = common.DefaultString(client.Protocol, protocol)
+			request_.Method = method
+			request_.Pathname = common.String("/")
+			globalQueries := make(map[string]*string)
+			globalHeaders := make(map[string]*string)
+
+			if !common.BoolValue(common.IsUnset(client.GlobalParameters)) {
+				globalParams := client.GlobalParameters
+				if !common.BoolValue(common.IsUnset(globalParams.Queries)) {
+					globalQueries = globalParams.Queries
+				}
+
+				if !common.BoolValue(common.IsUnset(globalParams.Headers)) {
+					globalHeaders = globalParams.Headers
+				}
+			}
+			request_.Query = common.Merge(map[string]*string{
+				"Action":         action,
+				"Format":         common.String("json"),
+				"Version":        version,
+				"Timestamp":      service.GetTimestamp(),
+				"SignatureNonce": service.GetNonce(),
+			}, globalQueries, request.Query)
+
+			headers, _err := client.GetRpcHeaders()
+			if _err != nil {
+				return _result, _err
+			}
+
+			if common.BoolValue(common.IsUnset(headers)) {
+				// endpoint is setted in product client
+				request_.Headers = common.Merge(map[string]*string{
+					"host":          client.Endpoint,
+					"x-acs-version": version,
+					"x-acs-action":  action,
+					"user-agent":    client.GetUserAgent(),
+				}, globalHeaders)
+			} else {
+				request_.Headers = common.Merge(map[string]*string{
+					"host":          client.Endpoint,
+					"x-acs-version": version,
+					"x-acs-action":  action,
+					"user-agent":    client.GetUserAgent(),
+				}, globalHeaders, headers)
+			}
+
+			if !common.BoolValue(common.IsUnset(request.Body)) {
+				m, _err := service.AssertAsMap(request.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				tmp := service.AnyifyMapValue(service.Query(m))
+				request_.Body = common.ToReader(service.ToFormString(tmp))
+				request_.Headers["content-type"] = common.String("application/x-www-form-urlencoded")
+			}
+
+			if !common.BoolValue(common.EqualString(authType, common.String("Anonymous"))) {
+				accessKeyId, _err := client.GetAccessKeyId()
+				if _err != nil {
+					return _result, _err
+				}
+
+				accessKeySecret, _err := client.GetAccessKeySecret()
+				if _err != nil {
+					return _result, _err
+				}
+
+				securityToken, _err := client.GetSecurityToken()
+				if _err != nil {
+					return _result, _err
+				}
+
+				if !common.BoolValue(common.Empty(securityToken)) {
+					request_.Query["SecurityToken"] = securityToken
+				}
+
+				request_.Query["SignatureMethod"] = common.String("HMAC-SHA1")
+				request_.Query["SignatureVersion"] = common.String("1.0")
+				request_.Query["AccessKeyId"] = accessKeyId
+				var t map[string]interface{}
+				if !common.BoolValue(common.IsUnset(request.Body)) {
+					t, _err = service.AssertAsMap(request.Body)
+					if _err != nil {
+						return _result, _err
+					}
+
+				}
+
+				signedParam := common.Merge(request_.Query,
+					service.Query(t))
+				request_.Query["Signature"] = service.GetRPCSignature(signedParam, request_.Method, accessKeySecret)
+			}
+
+			// 发送请求
+			response_, _err := common.DoRequest(request_, _runtime)
+			if _err != nil {
+				return _result, _err
+			}
+
+			// 请求结果处理
+			if common.BoolValue(service.Is4xx(response_.StatusCode)) || common.BoolValue(service.Is5xx(response_.StatusCode)) {
+				_res, _err := service.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				err, _err := service.AssertAsMap(_res)
+				if _err != nil {
+					return _result, _err
+				}
+
+				requestId := DefaultAny(err["RequestId"], err["requestId"])
+				err["statusCode"] = response_.StatusCode
+				_err = common.NewSDKError(map[string]interface{}{
+					"code":               common.ToString(DefaultAny(err["Code"], err["code"])),
+					"message":            "code: " + common.ToString(common.IntValue(response_.StatusCode)) + ", " + common.ToString(DefaultAny(err["Message"], err["message"])) + " request id: " + common.ToString(requestId),
+					"data":               err,
+					"description":        common.ToString(DefaultAny(err["Description"], err["description"])),
+					"accessDeniedDetail": DefaultAny(err["AccessDeniedDetail"], err["accessDeniedDetail"]),
+				})
+				return _result, _err
+			}
+
+			if common.BoolValue(common.EqualString(bodyType, common.String("binary"))) {
+				resp := map[string]interface{}{
+					"body":       response_.Body,
+					"headers":    response_.Headers,
+					"statusCode": common.IntValue(response_.StatusCode),
+				}
+				_result = resp
+				return _result, _err
+			} else if common.BoolValue(common.EqualString(bodyType, common.String("byte"))) {
+				byt, _err := service.ReadAsBytes(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = common.Convert(map[string]interface{}{
+					"body":       byt,
+					"headers":    response_.Headers,
+					"statusCode": common.IntValue(response_.StatusCode),
+				}, &_result)
+				return _result, _err
+			} else if common.BoolValue(common.EqualString(bodyType, common.String("string"))) {
+				str, _err := service.ReadAsString(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = common.Convert(map[string]interface{}{
+					"body":       common.StringValue(str),
+					"headers":    response_.Headers,
+					"statusCode": common.IntValue(response_.StatusCode),
+				}, &_result)
+				return _result, _err
+			} else if common.BoolValue(common.EqualString(bodyType, common.String("json"))) {
+				obj, _err := service.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				res, _err := service.AssertAsMap(obj)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = common.Convert(map[string]interface{}{
+					"body":       res,
+					"headers":    response_.Headers,
+					"statusCode": common.IntValue(response_.StatusCode),
+				}, &_result)
+				return _result, _err
+			} else if common.BoolValue(common.EqualString(bodyType, common.String("array"))) {
+				arr, _err := service.ReadAsJSON(response_.Body)
+				if _err != nil {
+					return _result, _err
+				}
+
+				_result = make(map[string]interface{})
+				_err = common.Convert(map[string]interface{}{
+					"body":       arr,
+					"headers":    response_.Headers,
+					"statusCode": common.IntValue(response_.StatusCode),
+				}, &_result)
+				return _result, _err
+			} else {
+				_result = make(map[string]interface{})
+				_err = common.Convert(map[string]interface{}{
+					"headers":    response_.Headers,
+					"statusCode": common.IntValue(response_.StatusCode),
+				}, &_result)
+				return _result, _err
+			}
+
+		}()
+		// 请求封装 end
+		if !common.BoolValue(common.Retryable(_err)) {
+			break
+		}
+	}
+	// 重试+请求 end
+
+	return _resp, _err
+}
+
+/**
+ * Get user agent
+ * @return user agent
+ */
+func (client *Client) GetUserAgent() (_result *string) {
+	userAgent := service.GetUserAgent(client.UserAgent)
+	_result = userAgent
+	return _result
 }
 
 /**
@@ -549,4 +816,16 @@ func DefaultAny(inputValue interface{}, defaultValue interface{}) (_result inter
 
 	_result = inputValue
 	return _result
+}
+
+func (client *Client) CheckConfig(config *Config) (_err error) {
+	if common.BoolValue(common.Empty(client.EndpointRule)) && common.BoolValue(common.Empty(config.Endpoint)) {
+		_err = common.NewSDKError(map[string]interface{}{
+			"code":    "ParameterMissing",
+			"message": "'config.endpoint' can not be empty",
+		})
+		return _err
+	}
+
+	return _err
 }

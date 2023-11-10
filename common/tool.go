@@ -253,6 +253,14 @@ func checkRequire(field reflect.StructField, valueField reflect.Value) error {
 	return errors.New(name + " 是必填项")
 }
 
+func ValidateModel(a interface{}) error {
+	if a == nil {
+		return nil
+	}
+	err := Validate(a)
+	return err
+}
+
 func validateSlice(field reflect.StructField, valueField reflect.Value, containsregexpTag bool, tag, tagName string) error {
 	if valueField.IsValid() && !valueField.IsNil() { // Determines whether the parameter has a value
 		if containsregexpTag {

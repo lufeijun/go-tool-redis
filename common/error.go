@@ -33,7 +33,9 @@ func (err *SDKError) Error() string {
 	return StringValue(err.errMsg)
 }
 
-func NewSDKError(obj map[string]interface{}) (err *SDKError) {
+func NewSDKError(obj map[string]interface{}) *SDKError {
+
+	err := &SDKError{}
 
 	// code 字段转换
 	if val, ok := obj["code"].(int); ok {
@@ -101,5 +103,5 @@ func NewSDKError(obj map[string]interface{}) (err *SDKError) {
 		}
 	}
 
-	return
+	return err
 }
